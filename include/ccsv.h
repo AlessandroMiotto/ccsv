@@ -1,6 +1,8 @@
 #ifndef H_CCSV
 #define H_CCSV
 
+#include <stdio.h>
+
 #define MAX_LINE_LENGTH 1024
 #define MAX_HEAD_SIZE 16
 #define MAX_COLUMNS 64
@@ -9,6 +11,7 @@
 
 #define SEPARATOR ','
 
+// i is the row and j the column
 #define GET(df, i, j) df->data[i * df->cols + j]
 
 typedef struct

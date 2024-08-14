@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.r": "r",
+        "df_stat.h": "c",
+        "stdio.h": "c"
+    }
+}
