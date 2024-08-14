@@ -125,3 +125,58 @@ void freeDataFrame(DataFrame *df)
     free(df->data);
     free(df);
 }
+
+
+// Print dataframe
+void printDataFrame(DataFrame *df)
+{
+    // Print upper border 
+    printf("┌");
+    for (int i = 1; i < CELL_SIZE * df->cols; i++)
+    {
+        if (i % CELL_SIZE == 0)
+            printf("┬");
+        else
+            printf("─");
+    }  
+    printf("┐\n");
+
+    // Print header
+    printf("│ ");
+    for (int i = 0; i < df->cols; i++)
+        printf("%*.*s │ ", CELL_SIZE - 3, CELL_SIZE - 3, df->head[i].nameCol);
+
+    printf("\n├");
+
+    // Print header-data border
+    for (int i = 1; i < CELL_SIZE * df->cols; i++)
+    {
+        if (i % CELL_SIZE == 0)
+            printf("┼");
+        else
+            printf("─");
+    }
+    printf("┤\n");
+
+    // Print data
+    for (int i = 0; i < df->rows; i++)
+    {
+        printf("│");
+        for (int j = 0; j < df->cols; j++)
+        {
+            printf(" %.*e │", CELL_SIZE - 9, GET(df, i, j));
+        }
+        printf("\n");
+    }
+
+    // Print lower border
+    printf("└");
+    for (int i = 1; i < CELL_SIZE * df->cols; i++)
+    {
+        if (i % CELL_SIZE == 0)
+            printf("┴");
+        else
+            printf("─");
+    }
+    printf("┘\n");
+}

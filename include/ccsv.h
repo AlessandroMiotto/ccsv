@@ -5,6 +5,8 @@
 #define MAX_HEAD_SIZE 16
 #define MAX_COLUMNS 64
 
+#define CELL_SIZE 12
+
 #define SEPARATOR ','
 
 #define GET(df, i, j) df->data[i * df->cols + j]
@@ -24,6 +26,7 @@ typedef struct
 
 DataFrame *readCSV(char* file_path);
 void freeDataFrame(DataFrame* df);
+void printDataFrame(DataFrame *df);
 
 int __get_cols__(FILE* fileptr);
 int __get_rows__(FILE* fileptr);
