@@ -1,17 +1,21 @@
-CC = gcc
-CFLAGS = -Wall
+SRC_DIRS = ./src
+BUILD_DIR = ./build
+INC_DIR = ./include
 
-SRC_DIRS = ./
+CC = gcc
+CFLAGS = -Wall -I $(INC_DIR)
+
 SOURCES = $(shell find $(SRC_DIRS) -name '*.c')
 TARGET = main
 
-$(TARGET) : main.c
-	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET)
+$(BUILD_DIR)/$(TARGET) : $(SRC_DIRS)/main.c
+	@mkdir $(BUILD_DIR)
+	$(CC) $(SOURCES) -o $(BUILD_DIR)/$(TARGET) $(CFLAGS)
 
 
 run:
-	@./$(TARGET)
+	$(BUILD_DIR)/$(TARGET)
 
 .PHONY: clean
 clean:
-	@rm $(TARGET)
+	rm -rf $(BUILD_DIR)
