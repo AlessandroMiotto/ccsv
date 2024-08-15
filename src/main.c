@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "ccsv.h"
 #include "df_stat.h"
 
