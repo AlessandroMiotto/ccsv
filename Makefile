@@ -3,7 +3,7 @@ BUILD_DIR = ./build
 INC_DIR = ./include
 
 CC = gcc
-CFLAGS = -Wall -I $(INC_DIR)
+CFLAGS = -Wall -I $(INC_DIR) -lm
 
 SOURCES = $(shell find $(SRC_DIRS) -name '*.c')
 TARGET = main

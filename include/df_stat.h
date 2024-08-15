@@ -10,6 +10,7 @@ typedef struct
     double* summary_Q1;     // first quartile
     double* summary_med;    // median
     double* summary_mean;   // mean
+    double* summary_stdev;  // standard deviation
     double* summary_Q3;     // third quartile
     double* summary_max;    // max value
 } Summary;
@@ -18,6 +19,7 @@ Summary* __allocate_summary__(DataFrame* df, int* cols_skip, const int num_col_s
 void __free_summary__(Summary* summ);
 
 int __compare__(const void *a, const void *b);
+double __quartile__(double* arr, int n, int quartile);
 void summary(Summary* summ, DataFrame* df, int* cols_skip, const int num_col_skip);
 void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip);
 

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "ccsv.h"
 #include "df_stat.h"
@@ -13,6 +14,7 @@ Summary *__allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_s
     summ->summary_Q1 = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
     summ->summary_med = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
     summ->summary_mean = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
+    summ->summary_stdev = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
     summ->summary_Q3 = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
     summ->summary_max = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
     return summ;
@@ -25,16 +27,14 @@ void __free_summary__(Summary *summ)
     free(summ->summary_min);
     free(summ->summary_Q1);
     free(summ->summary_med);
+    free(summ->summary_stdev);
     free(summ->summary_mean);
     free(summ->summary_Q3);
     free(summ->summary_max);
     free(summ);
 }
 
-// TODO: dato che per la mediana devo prendere il valore centrale
-// è necessario sortare l'array. In questo modo ottengo in automatico la media, mediana, moda.
-// Malloc e free una colona per volta, quick sort e calcolo.
-
+// Compare function for quick sort
 int __compare__(const void *a, const void *b)
 {
     double arg1 = *(const double *)a;
@@ -47,6 +47,21 @@ int __compare__(const void *a, const void *b)
     return 0;
 }
 
+// Calculate quartile
+double __quartile__(double* arr, int n, int quartile)
+{
+    double pos = (quartile * (n + 1)) / 4.0;
+    int lowerIndex = (int)pos - 1;
+    double fractionalPart = pos - (int)pos;
+
+    if (fractionalPart == 0) {
+        return arr[lowerIndex];
+    } else {
+        return arr[lowerIndex] + fractionalPart * (arr[lowerIndex + 1] - arr[lowerIndex]);
+    }
+}
+
+// Calculate statistics of the columns
 void summary(Summary *summ, DataFrame *df, int *cols_skip, const int num_col_skip)
 {
     double *array = (double *)malloc(sizeof(double) * df->rows);
@@ -60,23 +75,26 @@ void summary(Summary *summ, DataFrame *df, int *cols_skip, const int num_col_ski
                 goto skip;
         }
 
+        // save column in to an array and compute the sum
         double sum = 0.0;
+        double sum_square = 0.0;
         for (int j = 0; j < df->rows; j++)
         {
             array[j] = GET(df, j, i);
             sum += array[j];
+            sum_square += array[j] * array[j];
         }
-            
+        
+        // sort of the array
         qsort(array, df->rows, sizeof(double), __compare__);
         summ->col[k] = i;
         summ->summary_min[k] = array[0];
         summ->summary_max[k] = array[df->rows - 1];
         summ->summary_mean[k] = sum / df->rows;
-        if (df->rows % 2 == 0)
-            summ->summary_med[k] = 0.5 * (array[(df->rows - 1) / 2] + array[df->rows / 2]);
-        else
-            summ->summary_med[k] = array[df->rows / 2];
-
+        summ->summary_stdev[k] = sqrt((sum_square / df->rows - summ->summary_mean[k] * summ->summary_mean[k]) * (df->rows) / (df->rows - 1.0));
+        summ->summary_Q1[k] = __quartile__(array, df->rows, 1);
+        summ->summary_med[k] = __quartile__(array, df->rows, 2);
+        summ->summary_Q3[k] = __quartile__(array, df->rows, 3);
         k++;
 
     skip:
@@ -86,6 +104,7 @@ void summary(Summary *summ, DataFrame *df, int *cols_skip, const int num_col_ski
     free(array);
 }
 
+// Print summary statistics
 void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
 {
     Summary *summ = __allocate_summary__(df, cols_skip, num_col_skip);
@@ -95,8 +114,11 @@ void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
     {
         printf("Column %d: \"%s\"\n", summ->col[i], df->head[summ->col[i]].nameCol);
         printf("Mean: %f\n", summ->summary_mean[i]);
+        printf("Standard deviation: %f\n", summ->summary_stdev[i]);
         printf("Min: %f\n", summ->summary_min[i]);
+        printf("Q1: %f\n", summ->summary_Q1[i]);
         printf("Median: %f\n", summ->summary_med[i]);
+        printf("Q3: %f\n", summ->summary_Q3[i]);
         printf("Max: %f\n\n", summ->summary_max[i]);
     }
     __free_summary__(summ);
