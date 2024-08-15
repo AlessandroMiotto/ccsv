@@ -59,6 +59,6 @@ int __compare__(const void *a, const void *b);
 double __quartile__(double* arr, int n, int quartile);
 void summary(Summary* summ, DataFrame* df, int* cols_skip, const int num_col_skip);
 void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip);
-
+void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip);
 
 #endif

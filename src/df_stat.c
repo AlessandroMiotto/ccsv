@@ -126,3 +126,97 @@ void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
     }
     __free_summary__(summ);
 }
+
+// Pearson correlation matrix
+void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip)
+{
+    int n = df->cols - num_col_skip;
+    double* corrMat = (double *)malloc(sizeof(double) * (n * n));   // correlation matrix n x n
+
+    // calculate lower matrix correlatio
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            double corrij = 0.0;
+            for (int k = 0; k < df->rows; k++)
+                corrij += (GET(df, k, summ->col[i]) - summ->summary_mean[i]) * (GET(df, k, summ->col[j]) - summ->summary_mean[j]);
+
+            corrMat[i * n + j] = corrij / ((df->rows - 1) * summ->summary_stdev[i] * summ->summary_stdev[j]);
+        }
+    }
+
+    // simmetrize correlation amtrix
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i; j < n; j++)
+            corrMat[i * n + j] = corrMat[j * n + i];
+
+        corrMat[i * n + i] = 1.0;
+    }
+
+    //--- print matrix -----
+
+    // Print upper border
+    printf("┌");
+    for (int i = 1; i < CELL_SIZE * (n + 1); i++)
+    {
+        if (i % CELL_SIZE == 0)
+            printf("┬");
+        else
+            printf("─");
+    }
+    printf("┐\n");
+
+    // Print header
+    printf("│%*.*s|", CELL_SIZE - 1, CELL_SIZE - 1, " ");
+    for (int i = 0; i < n; i++)
+        printf(" %*.*s │", CELL_SIZE - 3, CELL_SIZE - 3, df->head[summ->col[i]].nameCol);
+
+    printf("\n├");
+
+    // Print header-data border
+    for (int i = 1; i < CELL_SIZE * (n + 1); i++)
+    {
+        if (i % CELL_SIZE == 0)
+            printf("┼");
+        else
+            printf("─");
+    }
+    printf("┤\n");
+    
+    // print data
+    for (int i = 0; i < n; i++)
+    {
+        // print header 
+        printf("│%*.*s│", CELL_SIZE - 1, CELL_SIZE - 1, df->head[summ->col[i]].nameCol);
+        for (int j = 0; j < n; j++)
+            printf("   %+.3f  │", corrMat[i * n + j]);
+
+        if (i != n - 1)
+        {
+            printf("\n├");
+            for (int j = 1; j < CELL_SIZE * (n + 1); j++)
+            {
+                if (j % CELL_SIZE == 0)
+                    printf("┼");
+                else
+                    printf("─");
+            }
+            printf("┤\n");
+        }
+    }
+    
+    // Print lower border
+    printf("\n└");
+    for (int i = 1; i < CELL_SIZE * (n + 1); i++)
+    {
+        if (i % CELL_SIZE == 0)
+            printf("┴");
+        else
+            printf("─");
+    }
+    printf("┘\n");
+
+    free(corrMat);
+}
