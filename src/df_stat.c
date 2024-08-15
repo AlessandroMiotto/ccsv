@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include "ccsv.h"
-#include "df_stat.h"
 
 // Build a statistical summary of the columns of the dataframe
 Summary *__allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
