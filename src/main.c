@@ -8,7 +8,7 @@ int main()
     DataFrame *df = readCSV("Admission_Predict.csv");
     int skip[1] = {0};
     
-    printDataFrame(df);
+    //printDataFrame(df);
     printSummary(df, skip, 1);
 
     freeDataFrame(df);

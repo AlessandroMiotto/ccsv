@@ -112,14 +112,18 @@ void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
 
     for (int i = 0; i < df->cols - 1; i++)
     {
-        printf("Column %d: \"%s\"\n", summ->col[i], df->head[summ->col[i]].nameCol);
-        printf("Mean: %f\n", summ->summary_mean[i]);
-        printf("Standard deviation: %f\n", summ->summary_stdev[i]);
-        printf("Min: %f\n", summ->summary_min[i]);
-        printf("Q1: %f\n", summ->summary_Q1[i]);
-        printf("Median: %f\n", summ->summary_med[i]);
-        printf("Q3: %f\n", summ->summary_Q3[i]);
-        printf("Max: %f\n\n", summ->summary_max[i]);
+        printf("┌──────────────────────────┐\n");
+        printf("│Column %d: %16.16s│\n", summ->col[i], df->head[summ->col[i]].nameCol);
+        printf("├──────────────────────────┤\n");
+        printf("│Mean:       \t: %.3e│\n", summ->summary_mean[i]);
+        printf("│Std. Dev.   \t: %.3e│\n", summ->summary_stdev[i]);
+        printf("├──────────────────────────┤\n");
+        printf("│Min    \t: %.3e│\n", summ->summary_min[i]);
+        printf("│1st Qu.\t: %.3e│\n", summ->summary_Q1[i]);
+        printf("│Median \t: %.3e│\n", summ->summary_med[i]);
+        printf("│3rd Qu.\t: %.3e│\n", summ->summary_Q3[i]);
+        printf("│Max.   \t: %.3e│\n", summ->summary_max[i]);
+        printf("└──────────────────────────┘\n");
     }
     __free_summary__(summ);
 }
