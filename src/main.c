@@ -6,9 +6,11 @@
 int main()
 {
     DataFrame *df = readCSV("Admission_Predict.csv");
-    //int skip[3] = {1, 2, 3};
-    printf("%f\n", __mean__(df, 1));
-    //__build_summary__(df, skip, 3);
+    int skip[1] = {0};
+    
+    printDataFrame(df);
+    printSummary(df, skip, 1);
+
     freeDataFrame(df);
 
     return 0;

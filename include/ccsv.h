@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #define MAX_LINE_LENGTH 1024
-#define MAX_HEAD_SIZE 16
+#define MAX_HEAD_SIZE 32
 #define MAX_COLUMNS 64
 
 #define CELL_SIZE 12

@@ -5,6 +5,7 @@
 
 typedef struct
 {
+    int* col; 
     double* summary_min;    // min value
     double* summary_Q1;     // first quartile
     double* summary_med;    // median
@@ -16,9 +17,9 @@ typedef struct
 Summary* __allocate_summary__(DataFrame* df, int* cols_skip, const int num_col_skip);
 void __free_summary__(Summary* summ);
 
-double __max__(DataFrame* df, int col);
-double __min__(DataFrame* df, int col);
-double __mean__(DataFrame* df, int col);
+int __compare__(const void *a, const void *b);
+void summary(Summary* summ, DataFrame* df, int* cols_skip, const int num_col_skip);
+void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip);
 
 
 #endif

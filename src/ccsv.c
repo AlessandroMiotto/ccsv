@@ -82,13 +82,27 @@ void __get_header__(FILE *fileptr, DataFrame *df)
     {
         int i = 0;
         char *cell = strtok(line, ",");
+
+        for (int j = 0; j < MAX_LINE_LENGTH - 1; j++)
+        {
+            if (cell[j] == '\n')
+                cell[j] = '\n';
+        }
+
         while (cell != NULL)
         {
             strncpy(df->head[i].nameCol, cell, MAX_HEAD_SIZE - 1);
             df->head[i].nameCol[MAX_HEAD_SIZE - 1] = '\0';
+
             cell = strtok(NULL, ",");
             i++;
         }
+    }
+
+    for (int j = 0; j < MAX_HEAD_SIZE - 2; j++)
+    {
+        if (df->head[df->cols - 1].nameCol[j] == '\n' || df->head[df->cols - 1].nameCol[j] == '\r')
+            df->head[df->cols - 1].nameCol[j] = 0;
     }
 }
 
@@ -126,11 +140,10 @@ void freeDataFrame(DataFrame *df)
     free(df);
 }
 
-
 // Print dataframe
 void printDataFrame(DataFrame *df)
 {
-    // Print upper border 
+    // Print upper border
     printf("┌");
     for (int i = 1; i < CELL_SIZE * df->cols; i++)
     {
@@ -138,7 +151,7 @@ void printDataFrame(DataFrame *df)
             printf("┬");
         else
             printf("─");
-    }  
+    }
     printf("┐\n");
 
     // Print header
