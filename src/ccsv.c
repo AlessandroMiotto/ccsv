@@ -177,7 +177,7 @@ void printDataFrame(DataFrame *df)
         printf("│");
         for (int j = 0; j < df->cols; j++)
         {
-            printf(" %.*e │", CELL_SIZE - 9, GET(df, i, j));
+            printf(" %+.*e │", CELL_SIZE - 10, GET(df, i, j));
         }
         printf("\n");
     }

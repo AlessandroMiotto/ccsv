@@ -111,18 +111,18 @@ void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
 
     for (int i = 0; i < df->cols - 1; i++)
     {
-        printf("┌──────────────────────────┐\n");
-        printf("│Column %d: %16.16s│\n", summ->col[i], df->head[summ->col[i]].nameCol);
-        printf("├──────────────────────────┤\n");
-        printf("│Mean:       \t: %.3e│\n", summ->summary_mean[i]);
-        printf("│Std. Dev.   \t: %.3e│\n", summ->summary_stdev[i]);
-        printf("├──────────────────────────┤\n");
-        printf("│Min    \t: %.3e│\n", summ->summary_min[i]);
-        printf("│1st Qu.\t: %.3e│\n", summ->summary_Q1[i]);
-        printf("│Median \t: %.3e│\n", summ->summary_med[i]);
-        printf("│3rd Qu.\t: %.3e│\n", summ->summary_Q3[i]);
-        printf("│Max.   \t: %.3e│\n", summ->summary_max[i]);
-        printf("└──────────────────────────┘\n");
+        printf("┌───────────────────────────┐\n");
+        printf("│Column %2d: %16.16s│\n", summ->col[i], df->head[summ->col[i]].nameCol);
+        printf("├───────────────────────────┤\n");
+        printf("│Mean:       \t: %+.3e│\n", summ->summary_mean[i]);
+        printf("│Std. Dev.   \t: %+.3e│\n", summ->summary_stdev[i]);
+        printf("├───────────────────────────┤\n");
+        printf("│Min    \t: %+.3e│\n", summ->summary_min[i]);
+        printf("│1st Qu.\t: %+.3e│\n", summ->summary_Q1[i]);
+        printf("│Median \t: %+.3e│\n", summ->summary_med[i]);
+        printf("│3rd Qu.\t: %+.3e│\n", summ->summary_Q3[i]);
+        printf("│Max.   \t: %+.3e│\n", summ->summary_max[i]);
+        printf("└───────────────────────────┘\n");
     }
     __free_summary__(summ);
 }
@@ -191,7 +191,7 @@ void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip)
         // print header 
         printf("│%*.*s│", CELL_SIZE - 1, CELL_SIZE - 1, df->head[summ->col[i]].nameCol);
         for (int j = 0; j < n; j++)
-            printf("   %+.3f  │", corrMat[i * n + j]);
+            printf("   %+.*f  │", CELL_SIZE - 9,  corrMat[i * n + j]);
 
         if (i != n - 1)
         {

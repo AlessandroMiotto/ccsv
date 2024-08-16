@@ -8,7 +8,7 @@
 #define MAX_HEAD_SIZE 32
 #define MAX_COLUMNS 64
 
-#define CELL_SIZE 12
+#define CELL_SIZE 11
 
 #define SEPARATOR ','
 

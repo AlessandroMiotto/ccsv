@@ -8,8 +8,10 @@ int main()
     Summary* summ = __allocate_summary__(df, skip, 1);
     summary(summ, df, skip, 1);
 
+    printDataFrame(df);
+    printSummary(df, skip, 1);
     correlationMatrix(df, summ, 1);
-
+    
     __free_summary__(summ);
     freeDataFrame(df);
 
