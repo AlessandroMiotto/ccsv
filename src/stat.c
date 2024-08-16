@@ -4,33 +4,17 @@
 
 #include "ccsv.h"
 
-// Build a statistical summary of the columns of the dataframe
-Summary *__allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
+void __allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
 {
-    Summary *summ = (Summary *)malloc(sizeof(Summary));
-    summ->col = (int *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    summ->summary_min = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    summ->summary_Q1 = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    summ->summary_med = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    summ->summary_mean = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    summ->summary_stdev = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    summ->summary_Q3 = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    summ->summary_max = (double *)malloc(sizeof(double) * (df->cols - num_col_skip));
-    return summ;
+    df->col_skip_num = num_col_skip;
+    df->col_index = (int *)malloc(sizeof(int) * (df->cols - num_col_skip));
+    df->stats = (Stats *)malloc(sizeof(Stats) * (df->cols - num_col_skip));
 }
 
-// Free memory allocated by __allocate_summary__
-void __free_summary__(Summary *summ)
+void __free_summary__(DataFrame *df)
 {
-    free(summ->col);
-    free(summ->summary_min);
-    free(summ->summary_Q1);
-    free(summ->summary_med);
-    free(summ->summary_stdev);
-    free(summ->summary_mean);
-    free(summ->summary_Q3);
-    free(summ->summary_max);
-    free(summ);
+    free(df->col_index);
+    free(df->stats);
 }
 
 // Compare function for quick sort
@@ -47,7 +31,7 @@ int __compare__(const void *a, const void *b)
 }
 
 // Calculate quartile
-double __quartile__(double* arr, int n, int quartile)
+double __quartile__(double* arr, int n, const int quartile)
 {
     double pos = (quartile * (n + 1)) / 4.0;
     int lowerIndex = (int)pos - 1;
@@ -61,14 +45,16 @@ double __quartile__(double* arr, int n, int quartile)
 }
 
 // Calculate statistics of the columns
-void summary(Summary *summ, DataFrame *df, int *cols_skip, const int num_col_skip)
+void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
 {
+    __allocate_summary__(df, cols_skip, num_col_skip);
+
     double *array = (double *)malloc(sizeof(double) * df->rows);
     int k = 0;
     for (int i = 0; i < df->cols; i++)
     {
         // skip columns specified in cols_skip array
-        for (int j = 0; j < num_col_skip; j++)
+        for (int j = 0; j < df->col_skip_num; j++)
         {
             if (cols_skip[j] == i)
                 goto skip;
@@ -86,14 +72,14 @@ void summary(Summary *summ, DataFrame *df, int *cols_skip, const int num_col_ski
         
         // sort of the array
         qsort(array, df->rows, sizeof(double), __compare__);
-        summ->col[k] = i;
-        summ->summary_min[k] = array[0];
-        summ->summary_max[k] = array[df->rows - 1];
-        summ->summary_mean[k] = sum / df->rows;
-        summ->summary_stdev[k] = sqrt((sum_square / df->rows - summ->summary_mean[k] * summ->summary_mean[k]) * (df->rows) / (df->rows - 1.0));
-        summ->summary_Q1[k] = __quartile__(array, df->rows, 1);
-        summ->summary_med[k] = __quartile__(array, df->rows, 2);
-        summ->summary_Q3[k] = __quartile__(array, df->rows, 3);
+        df->col_index[k] = i;
+        df->stats[k].min = array[0];
+        df->stats[k].max = array[df->rows - 1];
+        df->stats[k].mean = sum / df->rows;
+        df->stats[k].stdev = sqrt((sum_square / df->rows - df->stats[k].mean * df->stats[k].mean) * (df->rows) / (df->rows - 1.0));
+        df->stats[k].Q1 = __quartile__(array, df->rows, 1);
+        df->stats[k].median = __quartile__(array, df->rows, 2);
+        df->stats[k].Q3 = __quartile__(array, df->rows, 3);
         k++;
 
     skip:
@@ -103,34 +89,33 @@ void summary(Summary *summ, DataFrame *df, int *cols_skip, const int num_col_ski
     free(array);
 }
 
+
 // Print summary statistics
 void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
 {
-    Summary *summ = __allocate_summary__(df, cols_skip, num_col_skip);
-    summary(summ, df, cols_skip, num_col_skip);
+    __summary__(df, cols_skip, num_col_skip);
 
     for (int i = 0; i < df->cols - 1; i++)
     {
         printf("┌───────────────────────────┐\n");
-        printf("│Column %2d: %16.16s│\n", summ->col[i], df->head[summ->col[i]].nameCol);
+        printf("│Column %2d: %16.16s│\n", df->col_index[i], df->label[df->col_index[i]].nameCol);
         printf("├───────────────────────────┤\n");
-        printf("│Mean:       \t: %+.3e│\n", summ->summary_mean[i]);
-        printf("│Std. Dev.   \t: %+.3e│\n", summ->summary_stdev[i]);
+        printf("│Mean:       \t: %+.3e│\n", df->stats[i].mean);
+        printf("│Std. Dev.   \t: %+.3e│\n", df->stats[i].stdev);
         printf("├───────────────────────────┤\n");
-        printf("│Min    \t: %+.3e│\n", summ->summary_min[i]);
-        printf("│1st Qu.\t: %+.3e│\n", summ->summary_Q1[i]);
-        printf("│Median \t: %+.3e│\n", summ->summary_med[i]);
-        printf("│3rd Qu.\t: %+.3e│\n", summ->summary_Q3[i]);
-        printf("│Max.   \t: %+.3e│\n", summ->summary_max[i]);
+        printf("│Min    \t: %+.3e│\n", df->stats[i].min);
+        printf("│1st Qu.\t: %+.3e│\n", df->stats[i].Q1);
+        printf("│Median \t: %+.3e│\n", df->stats[i].median);
+        printf("│3rd Qu.\t: %+.3e│\n", df->stats[i].Q3);
+        printf("│Max.   \t: %+.3e│\n", df->stats[i].max);
         printf("└───────────────────────────┘\n");
     }
-    __free_summary__(summ);
 }
 
 // Pearson correlation matrix
-void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip)
+void corr(DataFrame* df)
 {
-    int n = df->cols - num_col_skip;
+    int n = df->cols - df->col_skip_num;
     double* corrMat = (double *)malloc(sizeof(double) * (n * n));   // correlation matrix n x n
 
     // calculate lower matrix correlatio
@@ -140,9 +125,9 @@ void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip)
         {
             double corrij = 0.0;
             for (int k = 0; k < df->rows; k++)
-                corrij += (GET(df, k, summ->col[i]) - summ->summary_mean[i]) * (GET(df, k, summ->col[j]) - summ->summary_mean[j]);
+                corrij += (GET(df, k,df->col_index[i]) - df->stats[i].mean) * (GET(df, k, df->col_index[j]) - df->stats[j].mean);
 
-            corrMat[i * n + j] = corrij / ((df->rows - 1) * summ->summary_stdev[i] * summ->summary_stdev[j]);
+            corrMat[i * n + j] = corrij / ((df->rows - 1) * df->stats[i].stdev * df->stats[j].stdev);
         }
     }
 
@@ -171,7 +156,7 @@ void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip)
     // Print header
     printf("│%*.*s|", CELL_SIZE - 1, CELL_SIZE - 1, " ");
     for (int i = 0; i < n; i++)
-        printf(" %*.*s │", CELL_SIZE - 3, CELL_SIZE - 3, df->head[summ->col[i]].nameCol);
+        printf(" %*.*s │", CELL_SIZE - 3, CELL_SIZE - 3, df->label[df->col_index[i]].nameCol);
 
     printf("\n├");
 
@@ -189,7 +174,7 @@ void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip)
     for (int i = 0; i < n; i++)
     {
         // print header 
-        printf("│%*.*s│", CELL_SIZE - 1, CELL_SIZE - 1, df->head[summ->col[i]].nameCol);
+        printf("│%*.*s│", CELL_SIZE - 1, CELL_SIZE - 1, df->label[df->col_index[i]].nameCol);
         for (int j = 0; j < n; j++)
             printf("   %+.*f  │", CELL_SIZE - 9,  corrMat[i * n + j]);
 

@@ -28,7 +28,7 @@ int __get_cols__(FILE *fileptr)
 // Find the number of columns
 int __get_rows__(FILE *fileptr)
 {
-    rewind(fileptr); // reset file position
+    rewind(fileptr);        // reset file position
     int rows = 0;
     int ch;
     int last_char = 0;
@@ -54,90 +54,98 @@ void __get_data__(FILE *fileptr, DataFrame *df)
     rewind(fileptr); // reset file position
     char line[MAX_LINE_LENGTH];
 
-    // Skip first line (header)
+    // Skip first line (labeler)
     fgets(line, MAX_LINE_LENGTH, fileptr);
 
     int row = 0;
     while (fgets(line, MAX_LINE_LENGTH, fileptr))
     {
         int col = 0;
-        char *cell = strtok(line, ",");
+        char *cell = strtok(line, SEPARATOR);
         while (cell != NULL && col < df->cols)
         {
             df->data[row * df->cols + col] = atof(cell);
-            cell = strtok(NULL, ",");
+            cell = strtok(NULL, SEPARATOR);
             col++;
         }
         row++;
     }
 }
 
-// store data to dataframe
-void __get_header__(FILE *fileptr, DataFrame *df)
+// store labels to dataframe
+void __get_label__(FILE *fileptr, DataFrame *df)
 {
     rewind(fileptr); // reset file position
     char line[MAX_LINE_LENGTH];
 
+    // Copy string from csv to label array
     if (fgets(line, MAX_LINE_LENGTH, fileptr) != NULL)
     {
         int i = 0;
-        char *cell = strtok(line, ",");
+        char *cell = strtok(line, SEPARATOR); 
 
         for (int j = 0; j < MAX_LINE_LENGTH - 1; j++)
         {
             if (cell[j] == '\n')
-                cell[j] = '\n';
+                cell[j] = '\n'; // ??????
         }
 
         while (cell != NULL)
         {
-            strncpy(df->head[i].nameCol, cell, MAX_HEAD_SIZE - 1);
-            df->head[i].nameCol[MAX_HEAD_SIZE - 1] = '\0';
+            strncpy(df->label[i].nameCol, cell, MAX_LABEL_SIZE - 1);
+            df->label[i].nameCol[MAX_LABEL_SIZE - 1] = '\0';
 
-            cell = strtok(NULL, ",");
+            cell = strtok(NULL, SEPARATOR);
             i++;
         }
     }
 
-    for (int j = 0; j < MAX_HEAD_SIZE - 2; j++)
+    // Control if last label has more than one new line
+    for (int j = 0; j < MAX_LABEL_SIZE - 2; j++)
     {
-        if (df->head[df->cols - 1].nameCol[j] == '\n' || df->head[df->cols - 1].nameCol[j] == '\r')
-            df->head[df->cols - 1].nameCol[j] = 0;
+        if (df->label[df->cols - 1].nameCol[j] == '\n' || df->label[df->cols - 1].nameCol[j] == '\r')
+            df->label[df->cols - 1].nameCol[j] = 0;
     }
 }
 
-// Allocate memory of the dataframe
-DataFrame *readCSV(char *file_path)
+// Memory allocation
+DataFrame * __allocate_DataFrame__(int rows, int cols)
+{
+    DataFrame *df = (DataFrame *)malloc(sizeof(DataFrame));
+    df->cols = cols;
+    df->rows = rows;
+    df->data = (double *)malloc(sizeof(double) * rows * cols);
+    df->label = (Label *)malloc(sizeof(Label) * cols);
+
+    return df;
+}
+
+// Free memory of dataframe
+void freeDataFrame(DataFrame *df)
+{
+    free(df->data);
+    free(df->label);
+    __free_summary__(df);
+    free(df);
+}
+
+// Load csv file to dataframe structure
+DataFrame* read_csv(char *file_path)
 {
     FILE *fileptr = fopen(file_path, "r");
-
     if (fileptr == NULL)
     {
         printf("ERROR: file not opened correctly\n");
         exit(1);
     }
-
-    DataFrame *df = (DataFrame *)malloc(sizeof(DataFrame));
-
-    df->cols = __get_cols__(fileptr);
-    df->rows = __get_rows__(fileptr);
-    df->head = (Head *)malloc(sizeof(Head) * df->cols);
-    df->data = (double *)malloc(sizeof(double) * df->cols * df->rows);
-
+    
+    DataFrame *df = __allocate_DataFrame__( __get_rows__(fileptr), __get_cols__(fileptr));
     __get_data__(fileptr, df);
-    __get_header__(fileptr, df);
+    __get_label__(fileptr, df);
 
     fclose(fileptr);
 
     return df;
-}
-
-// Free dataframe memory allocation
-void freeDataFrame(DataFrame *df)
-{
-    free(df->head);
-    free(df->data);
-    free(df);
 }
 
 // Print dataframe
@@ -157,7 +165,7 @@ void printDataFrame(DataFrame *df)
     // Print header
     printf("│ ");
     for (int i = 0; i < df->cols; i++)
-        printf("%*.*s │ ", CELL_SIZE - 3, CELL_SIZE - 3, df->head[i].nameCol);
+        printf("%*.*s │ ", CELL_SIZE - 3, CELL_SIZE - 3, df->label[i].nameCol);
 
     printf("\n├");
 

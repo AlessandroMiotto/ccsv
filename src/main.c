@@ -2,17 +2,13 @@
 
 int main()
 {
-    DataFrame *df = readCSV("Admission_Predict.csv");
-    int skip[1] = {0};
-    
-    Summary* summ = __allocate_summary__(df, skip, 1);
-    summary(summ, df, skip, 1);
+    DataFrame *df = read_csv("Admission_Predict.csv");
 
     printDataFrame(df);
-    printSummary(df, skip, 1);
-    correlationMatrix(df, summ, 1);
     
-    __free_summary__(summ);
+    int skip[1] = {0};
+    printSummary(df, skip, 1);
+    corr(df);
     freeDataFrame(df);
 
     return 0;

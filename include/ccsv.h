@@ -5,60 +5,65 @@
 #include "ccsv.h"
 
 #define MAX_LINE_LENGTH 1024
-#define MAX_HEAD_SIZE 32
 #define MAX_COLUMNS 64
+#define MAX_LABEL_SIZE 32
+#define CELL_SIZE 12
 
-#define CELL_SIZE 11
+#define SEPARATOR ","
 
-#define SEPARATOR ','
-
-// i is the row and j the column
+// i is the row and j is the column
 #define GET(df, i, j) df->data[i * df->cols + j]
 
 typedef struct
 {
-    char nameCol[MAX_HEAD_SIZE]; 
-} Head;
+    // name of a column
+    char nameCol[MAX_LABEL_SIZE]; 
+} Label;
 
 typedef struct
 {
-    Head *head;
+    double mean;
+    double stdev;
+
+    double min;
+    double Q1;
+    double median;
+    double Q3;
+    double max;
+} Stats;
+
+typedef struct
+{
+    Label *label;        // array of column names
+
+    int col_skip_num;   // number of skipped columns
+    int *col_index;     // array of keeped columns
+    Stats *stats;       // array of columns statistics
+
     double *data;
     int rows;
     int cols;
 } DataFrame;
 
-DataFrame *readCSV(char* file_path);
-void freeDataFrame(DataFrame* df);
+
+int __get_cols__(FILE *fileptr);
+int __get_rows__(FILE *fileptr);
+void __get_data__(FILE *fileptr, DataFrame *df);
+void __get_label__(FILE *fileptr, DataFrame *df);
+DataFrame * __allocate_DataFrame__(int rows, int cols);
+
+void freeDataFrame(DataFrame *df);
+DataFrame* read_csv(char *file_path);
 void printDataFrame(DataFrame *df);
 
-int __get_cols__(FILE* fileptr);
-int __get_rows__(FILE* fileptr);
-void __get_data__(FILE* fileptr, DataFrame* df);
-void __get_header__(FILE *fileptr, DataFrame *df);
 
-// Statistic 
-
-typedef struct
-{
-    int* col; 
-    double* summary_min;    // min value
-    double* summary_Q1;     // first quartile
-    double* summary_med;    // median
-    double* summary_mean;   // mean
-    double* summary_stdev;  // standard deviation
-    double* summary_Q3;     // third quartile
-    double* summary_max;    // max value
-} Summary;
-
-
-Summary* __allocate_summary__(DataFrame* df, int* cols_skip, const int num_col_skip);
-void __free_summary__(Summary* summ);
-
+void __allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_skip);
+void __free_summary__(DataFrame *df);
 int __compare__(const void *a, const void *b);
-double __quartile__(double* arr, int n, int quartile);
-void summary(Summary* summ, DataFrame* df, int* cols_skip, const int num_col_skip);
+double __quartile__(double* arr, int n, const int quartile);
+void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip);
+
 void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip);
-void correlationMatrix(DataFrame* df, Summary* summ, const int num_col_skip);
+void corr(DataFrame* df);
 
 #endif
