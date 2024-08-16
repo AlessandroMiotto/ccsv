@@ -54,7 +54,7 @@ CCSV use make as build system and does not rely on any dependencies.
 ToDo list
 --------------
 - [x] Statistical summary
-- [ ] Correlation analysis
+- [x] Correlation analysis
 - [ ] Regression models
 - [ ] Histogram
 - [ ] Multithreading support
