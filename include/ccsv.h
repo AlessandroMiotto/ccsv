@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "ccsv.h"
 
+#define NUM_THREADS 8
+
 #define MAX_LINE_LENGTH 1024
 #define MAX_COLUMNS 64
 #define MAX_LABEL_SIZE 32

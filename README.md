@@ -37,7 +37,7 @@ int main()
 
 Build from source
 --------------
-CCSV use make as build system and does not rely on any dependencies. 
+CCSV use make as build system and OpenMP for multithreading. 
 
 1. Clone the repository 
     ```
@@ -57,4 +57,4 @@ ToDo list
 - [x] Correlation analysis
 - [ ] Regression models
 - [ ] Histogram
-- [ ] Multithreading support
+- [x] Multithreading support

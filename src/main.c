@@ -10,9 +10,11 @@ int main()
     printSummary(df, skip, 1);
     corr(df);
     
-    printColsName(df);
+    //printColsName(df);
     
     freeDataFrame(df);
+
+    //#pragma omp parallel for num_threads(NUM_THREADS)
 
     return 0;
 }

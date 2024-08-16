@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <omp.h>
 
 #include "ccsv.h"
 
@@ -51,6 +52,7 @@ void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
 
     double *array = (double *)malloc(sizeof(double) * df->rows);
     int k = 0;
+    
     for (int i = 0; i < df->cols; i++)
     {
         // skip columns specified in cols_skip array
@@ -63,6 +65,7 @@ void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
         // save column in to an array and compute the sum
         double sum = 0.0;
         double sum_square = 0.0;
+
         for (int j = 0; j < df->rows; j++)
         {
             array[j] = GET(df, j, i);
@@ -133,6 +136,7 @@ void corr(DataFrame* df)
     double* corrMat = (double *)malloc(sizeof(double) * (n * n));   // correlation matrix n x n
 
     // calculate lower matrix correlatio
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < i; j++)
@@ -146,8 +150,10 @@ void corr(DataFrame* df)
     }
 
     // simmetrize correlation amtrix
+    #pragma omp parallel for num_threads(NUM_THREADS)
     for (int i = 0; i < n; i++)
     {
+        #pragma omp parallel for num_threads(NUM_THREADS)
         for (int j = i; j < n; j++)
             corrMat[i * n + j] = corrMat[j * n + i];
 
