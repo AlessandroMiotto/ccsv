@@ -9,6 +9,9 @@ int main()
     int skip[1] = {0};
     printSummary(df, skip, 1);
     corr(df);
+    
+    printColsName(df);
+    
     freeDataFrame(df);
 
     return 0;

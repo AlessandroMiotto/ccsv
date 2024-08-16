@@ -55,7 +55,8 @@ DataFrame * __allocate_DataFrame__(int rows, int cols);
 void freeDataFrame(DataFrame *df);
 DataFrame* read_csv(char *file_path);
 void printDataFrame(DataFrame *df);
-
+char* colname(DataFrame *df, int col);
+void printColsName(DataFrame *df);
 
 void __allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_skip);
 void __free_summary__(DataFrame *df);
@@ -66,5 +67,11 @@ void __print_line__(int n, const char* left, const char* middle, const char* rig
 
 void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip);
 void corr(DataFrame* df);
+
+double mean(DataFrame *df, int col);
+double sdt(DataFrame *df, int col);
+double median(DataFrame *df, int col);
+double max(DataFrame *df, int col);
+double min(DataFrame *df, int col);
 
 #endif

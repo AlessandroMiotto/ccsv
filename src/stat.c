@@ -190,3 +190,69 @@ void corr(DataFrame* df)
 
     free(corrMat);
 }
+
+
+// Return the mean of the column col
+double mean(DataFrame *df, int col)
+{
+    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    {
+        if (df->col_index[i] == col)
+            return df->stats[i].mean;
+    }
+    
+    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+    exit(1);
+}
+
+// Return the standard deviation of the column col
+double sdt(DataFrame *df, int col)
+{
+    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    {
+        if (df->col_index[i] == col)
+            return df->stats[i].stdev;
+    }
+    
+    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+    exit(1);
+}
+
+// Return the median of the column col
+double median(DataFrame *df, int col)
+{
+    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    {
+        if (df->col_index[i] == col)
+            return df->stats[i].median;
+    }
+    
+    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+    exit(1);
+}
+
+// Return the max of the column col
+double max(DataFrame *df, int col)
+{
+    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    {
+        if (df->col_index[i] == col)
+            return df->stats[i].max;
+    }
+    
+    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+    exit(1);
+}
+
+// Return the min of the column col
+double min(DataFrame *df, int col)
+{
+    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    {
+        if (df->col_index[i] == col)
+            return df->stats[i].min;
+    }
+    
+    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+    exit(1);
+}

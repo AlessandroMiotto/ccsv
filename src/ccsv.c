@@ -84,12 +84,6 @@ void __get_label__(FILE *fileptr, DataFrame *df)
         int i = 0;
         char *cell = strtok(line, SEPARATOR); 
 
-        /*for (int j = 0; j < MAX_LINE_LENGTH - 1; j++)
-        {
-            if (cell[j] == '\n')
-                cell[j] = '\n'; // ??????
-        }*/
-
         while (cell != NULL)
         {
             strncpy(df->label[i].nameCol, cell, MAX_LABEL_SIZE - 1);
@@ -200,4 +194,19 @@ void printDataFrame(DataFrame *df)
             printf("─");
     }
     printf("┘\n");
+}
+
+// Return the name of the column
+char* colname(DataFrame *df, int col)
+{
+    return df->label[col].nameCol;
+}
+
+// Print all the names of the columns
+void printColsName(DataFrame *df)
+{
+    printf("[");
+    for (int i = 0; i < df->cols - 1; i++)
+        printf("'%s', ", df->label[i].nameCol);
+    printf("'%s']\n", df->label[df->cols - 1].nameCol);
 }
