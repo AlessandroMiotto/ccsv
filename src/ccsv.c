@@ -84,11 +84,11 @@ void __get_label__(FILE *fileptr, DataFrame *df)
         int i = 0;
         char *cell = strtok(line, SEPARATOR); 
 
-        for (int j = 0; j < MAX_LINE_LENGTH - 1; j++)
+        /*for (int j = 0; j < MAX_LINE_LENGTH - 1; j++)
         {
             if (cell[j] == '\n')
                 cell[j] = '\n'; // ??????
-        }
+        }*/
 
         while (cell != NULL)
         {

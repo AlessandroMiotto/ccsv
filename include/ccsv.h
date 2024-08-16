@@ -62,6 +62,7 @@ void __free_summary__(DataFrame *df);
 int __compare__(const void *a, const void *b);
 double __quartile__(double* arr, int n, const int quartile);
 void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip);
+void __print_line__(int n, const char* left, const char* middle, const char* right);
 
 void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip);
 void corr(DataFrame* df);

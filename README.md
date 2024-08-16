@@ -1,6 +1,6 @@
 # CCSV
 
-CCSV is a simple CSV parsen written in pure C with the goal of mimic [R](https://www.r-project.org/) and [pandas](https://pandas.pydata.org/) dataframe. It offers dataframe structure and automatic descriptive statistis. For now, CCSV can handle only numerical dataset.
+CCSV is a simple CSV parser written in pure C with the goal of mimic [R](https://www.r-project.org/) and [pandas](https://pandas.pydata.org/) dataframe. It offers dataframe structure and automatic descriptive statistis. For now, CCSV can handle only numerical dataset.
 
 ---
 
@@ -12,8 +12,8 @@ This example shows how to import a csv file and display statistical quantities i
 
 int main()
 {
-    // Create dataframe
-    DataFrame *df = readCSV("file.csv");
+    // Create dataframe reading data from csv file
+    DataFrame *df = read_csv("file.csv");
 
     // Print all the dataframe
     printDataFrame(df);
@@ -23,7 +23,10 @@ int main()
     int col_skip[1] = {0};
     
     // Print statistical summary
-    printSummary(df, col_skip, 1);
+    printSummary(df, skip, 1);
+
+    // Print correlation matrix
+    corr(df);
 
     // Deallocate dataframe
     freeDataFrame(df);
