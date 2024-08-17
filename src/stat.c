@@ -1,11 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <omp.h>
 
 #include "ccsv.h"
 
-void __allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
+void __allocate_summary__(DataFrame *df, const int *cols_skip, const int num_col_skip)
 {
     df->col_skip_num = num_col_skip;
     df->col_index = (int *)malloc(sizeof(int) * (df->cols - num_col_skip));
@@ -16,6 +17,7 @@ void __free_summary__(DataFrame *df)
 {
     free(df->col_index);
     free(df->stats);
+    df->stats = NULL;
 }
 
 // Compare function for quick sort
@@ -32,27 +34,31 @@ int __compare__(const void *a, const void *b)
 }
 
 // Calculate quartile
-double __quartile__(double* arr, int n, const int quartile)
+double __quartile__(double *arr, int n, const int quartile)
 {
     double pos = (quartile * (n + 1)) / 4.0;
     int lowerIndex = (int)pos - 1;
     double fractionalPart = pos - (int)pos;
 
-    if (fractionalPart == 0) {
+    if (fractionalPart == 0)
+    {
         return arr[lowerIndex];
-    } else {
+    }
+    else
+    {
         return arr[lowerIndex] + fractionalPart * (arr[lowerIndex + 1] - arr[lowerIndex]);
     }
 }
 
 // Calculate statistics of the columns
-void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
+void __summary__(DataFrame *df, const int *cols_skip, const int num_col_skip)
 {
+    __free_summary__(df);
     __allocate_summary__(df, cols_skip, num_col_skip);
 
     double *array = (double *)malloc(sizeof(double) * df->rows);
     int k = 0;
-    
+
     for (int i = 0; i < df->cols; i++)
     {
         // skip columns specified in cols_skip array
@@ -72,7 +78,7 @@ void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
             sum += array[j];
             sum_square += array[j] * array[j];
         }
-        
+
         // sort of the array
         qsort(array, df->rows, sizeof(double), __compare__);
         df->col_index[k] = i;
@@ -92,13 +98,13 @@ void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip)
     free(array);
 }
 
-
 // Print summary statistics
-void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
+void printSummary(DataFrame *df, const int *cols_skip, const int num_col_skip)
 {
-    __summary__(df, cols_skip, num_col_skip);
+    if (df->stats == NULL || num_col_skip != df->col_skip_num)
+        __summary__(df, cols_skip, num_col_skip);
 
-    for (int i = 0; i < df->cols - 1; i++)
+    for (int i = 0; i < df->cols - num_col_skip; i++)
     {
         printf("┌───────────────────────────┐\n");
         printf("│Column %2d: %16.16s│\n", df->col_index[i], df->label[df->col_index[i]].nameCol);
@@ -116,7 +122,7 @@ void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip)
 }
 
 // Utils for line printing
-void __print_line__(int n, const char* left, const char* middle, const char* right)
+void __print_line__(int n, const char *left, const char *middle, const char *right)
 {
     printf("%s", left);
     for (int i = 1; i < CELL_SIZE * (n + 1); i++)
@@ -130,10 +136,13 @@ void __print_line__(int n, const char* left, const char* middle, const char* rig
 }
 
 // Pearson correlation matrix
-void corr(DataFrame* df)
+void corr(DataFrame *df, const int *cols_skip, const int num_col_skip)
 {
+    if (df->stats == NULL || num_col_skip != df->col_skip_num)
+        __summary__(df, cols_skip, num_col_skip);
+
     int n = df->cols - df->col_skip_num;
-    double* corrMat = (double *)malloc(sizeof(double) * (n * n));   // correlation matrix n x n
+    double *corrMat = (double *)malloc(sizeof(double) * (n * n)); // correlation matrix n x n
 
     // calculate lower matrix correlatio
     #pragma omp parallel for num_threads(NUM_THREADS)
@@ -143,7 +152,7 @@ void corr(DataFrame* df)
         {
             double corrij = 0.0;
             for (int k = 0; k < df->rows; k++)
-                corrij += (GET(df, k,df->col_index[i]) - df->stats[i].mean) * (GET(df, k, df->col_index[j]) - df->stats[j].mean);
+                corrij += (GET(df, k, df->col_index[i]) - df->stats[i].mean) * (GET(df, k, df->col_index[j]) - df->stats[j].mean);
 
             corrMat[i * n + j] = corrij / ((df->rows - 1) * df->stats[i].stdev * df->stats[j].stdev);
         }
@@ -174,14 +183,14 @@ void corr(DataFrame* df)
 
     // Print header-data border
     __print_line__(n, "├", "┼", "┤");
-    
+
     // print data
     for (int i = 0; i < n; i++)
     {
-        // print header 
+        // print header
         printf("│ %*.*s │", CELL_SIZE - 3, CELL_SIZE - 3, df->label[df->col_index[i]].nameCol);
         for (int j = 0; j < n; j++)
-            printf("   %+.*f  │", CELL_SIZE - 9,  corrMat[i * n + j]);
+            printf("   %+.*f  │", CELL_SIZE - 9, corrMat[i * n + j]);
 
         if (i != n - 1)
         {
@@ -197,68 +206,108 @@ void corr(DataFrame* df)
     free(corrMat);
 }
 
-
 // Return the mean of the column col
 double mean(DataFrame *df, int col)
 {
-    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    // if stats was computed
+    if (df->stats != NULL)
     {
-        if (df->col_index[i] == col)
-            return df->stats[i].mean;
+        for (int i = 0; i < df->cols - df->col_skip_num; i++)
+        {
+            if (df->col_index[i] == col)
+                return df->stats[i].mean;
+        }
     }
-    
-    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
-    exit(1);
+
+    // if stat was not computed
+    double sum = 0.0;
+
+    for (int i = 0; i < df->rows; i++)
+        sum += GET(df, i, col);
+
+    return sum / df->rows;
 }
 
 // Return the standard deviation of the column col
-double sdt(DataFrame *df, int col)
+double std(DataFrame *df, int col)
 {
-    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    // if stats was computed
+    if (df->stats != NULL)
     {
-        if (df->col_index[i] == col)
-            return df->stats[i].stdev;
+        for (int i = 0; i < df->cols - df->col_skip_num; i++)
+        {
+            if (df->col_index[i] == col)
+                return df->stats[i].stdev;
+        }
     }
-    
-    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
-    exit(1);
+
+    // if stat was not computed
+    double sum_square = 0.0;
+    double mean_val = mean(df, col);
+
+    for (int i = 0; i < df->rows; i++)
+        sum_square += GET(df, i, col) * GET(df, i, col);
+
+    return sqrt((sum_square / df->rows - mean_val * mean_val) * (df->rows) / (df->rows - 1.0));
 }
 
 // Return the median of the column col
 double median(DataFrame *df, int col)
 {
-    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+    // if stats was computed
+    if (df->stats != NULL)
     {
-        if (df->col_index[i] == col)
-            return df->stats[i].median;
+        for (int i = 0; i < df->cols - df->col_skip_num; i++)
+        {
+            if (df->col_index[i] == col)
+                return df->stats[i].median;
+        }
+        
+        printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+        exit(1);
     }
-    
-    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+
+    printf("ERROR: statistical report was not computed yet\n");
     exit(1);
 }
 
 // Return the max of the column col
 double max(DataFrame *df, int col)
 {
-    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+     // if stats was computed
+    if (df->stats != NULL)
     {
-        if (df->col_index[i] == col)
-            return df->stats[i].max;
+        for (int i = 0; i < df->cols - df->col_skip_num; i++)
+        {
+            if (df->col_index[i] == col)
+                return df->stats[i].max;
+        }
+
+        printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+        exit(1);
     }
-    
-    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+
+    printf("ERROR: statistical report was not computed yet\n");
     exit(1);
+    
 }
 
 // Return the min of the column col
 double min(DataFrame *df, int col)
 {
-    for (int i = 0; i < df->cols - df->col_skip_num; i++)
+     // if stats was computed
+    if (df->stats != NULL)
     {
-        if (df->col_index[i] == col)
-            return df->stats[i].min;
+        for (int i = 0; i < df->cols - df->col_skip_num; i++)
+        {
+            if (df->col_index[i] == col)
+                return df->stats[i].min;
+        }
+
+        printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+        exit(1);
     }
-    
-    printf("ERROR: column number not valid. Maybe it was skipped previously\n");
+
+    printf("ERROR: statistical report was not computed yet\n");
     exit(1);
 }

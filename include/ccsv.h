@@ -11,6 +11,8 @@
 #define MAX_LABEL_SIZE 32
 #define CELL_SIZE 12
 
+#define ALL_LINES 0
+
 #define SEPARATOR ","
 
 // i is the row and j is the column
@@ -56,22 +58,22 @@ DataFrame * __allocate_DataFrame__(int rows, int cols);
 
 void freeDataFrame(DataFrame *df);
 DataFrame* read_csv(char *file_path);
-void printDataFrame(DataFrame *df);
+void printDataFrame(DataFrame *df, int line_to_print);
 char* colname(DataFrame *df, int col);
 void printColsName(DataFrame *df);
 
-void __allocate_summary__(DataFrame *df, int *cols_skip, const int num_col_skip);
+void __allocate_summary__(DataFrame *df, const int *cols_skip, const int num_col_skip);
 void __free_summary__(DataFrame *df);
 int __compare__(const void *a, const void *b);
 double __quartile__(double* arr, int n, const int quartile);
-void __summary__(DataFrame *df, int *cols_skip, const int num_col_skip);
+void __summary__(DataFrame *df, const int *cols_skip, const int num_col_skip);
 void __print_line__(int n, const char* left, const char* middle, const char* right);
 
-void printSummary(DataFrame *df, int *cols_skip, const int num_col_skip);
-void corr(DataFrame* df);
+void printSummary(DataFrame *df, const int *cols_skip, const int num_col_skip);
+void corr(DataFrame *df, const int *cols_skip, const int num_col_skip);
 
 double mean(DataFrame *df, int col);
-double sdt(DataFrame *df, int col);
+double std(DataFrame *df, int col);
 double median(DataFrame *df, int col);
 double max(DataFrame *df, int col);
 double min(DataFrame *df, int col);

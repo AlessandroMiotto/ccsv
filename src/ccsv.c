@@ -143,7 +143,7 @@ DataFrame* read_csv(char *file_path)
 }
 
 // Print dataframe
-void printDataFrame(DataFrame *df)
+void printDataFrame(DataFrame *df, int line_to_print)
 {
     // Print upper border
     printf("┌");
@@ -182,6 +182,10 @@ void printDataFrame(DataFrame *df)
             printf(" %+.*e │", CELL_SIZE - 10, GET(df, i, j));
         }
         printf("\n");
+
+        // print max number of line
+        if (line_to_print != 0 && i > line_to_print)
+            break;   
     }
 
     // Print lower border
