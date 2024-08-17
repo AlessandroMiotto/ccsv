@@ -29,13 +29,6 @@ void __transpose__(double *Xt, double *X, int m, int n)
         for (int j = 0; j < n; j++)
             Xt[i * n + j] = X[j * m + i];
     }
-
-    /*for (int i = 0; i < m; i++)
-    {
-        for (int j = 0; j < 10; j++)
-            printf("%f\t", Xt[i * n + j]);
-        printf("\n");
-    }*/
 }
 
 // matrix-matrix multiplication
@@ -45,16 +38,9 @@ void __matmul__(double *A, double *B, double *C, int m, int n, int p)
     for (int i = 0; i < m; i++)
     {
         for (int j = 0; j < p; j++)
-            for (int k = 0; k < m; k++)
+            for (int k = 0; k < n; k++)
                 C[i * p + j] += A[i * n + k] * B[k * p + j];
     }
-
-    /*for (int i = 0; i < m; i++)
-    {
-        for (int j = 0; j < p; j++)
-            printf("%.3e\t", C[i * m + j]);
-        printf("\n");
-    }*/
 }
 
 // Linear system solution Lx=b with L lower matrix
@@ -84,7 +70,7 @@ void __back_substitution__(double *U, double *x, double *b, int n)
     }
 }
 
-// From a square n x n matrix A find Lower decomposition A=LL^\t
+// From a square n x n matrix A find Lower decomposition A=LLᵀ
 void __cholesky__decomposition__(double *A, double *L, int n)
 {
     for (int i = 0; i < n; i++)
@@ -118,4 +104,58 @@ void __linear_solver__(double *A, double *x, double *b, int n)
     free(y);
     free(L);
     free(Lt);
+}
+
+// Linear regression of the dataframe using least-square estiamtion
+// Solve XᵀX β = Xᵀy
+void linearRegression(DataFrame *df, LinearRegression lr)
+{
+    int n = lr.x_cols_num + 1;
+
+    double *X = (double *)malloc(sizeof(double) * n * df->rows);
+    double *y = (double *)malloc(sizeof(double) * n);
+    double *Xt = (double *)malloc(sizeof(double) * n * df->rows); 
+    double *XtX = (double *)malloc(sizeof(double) * n * n); 
+
+    #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            XtX[i * n + j] = 0.0;
+    
+
+    __design_matrix__(X, df, lr.x_cols, n);
+    __transpose__(Xt, X, n, df->rows);
+    __matmul__(Xt, X, XtX, n, df->rows, n);
+
+    free(X);
+    free(Xt);
+
+    #pragma omp parallel for num_threads(NUM_THREADS)
+    for (int i = 0; i < n; i++)
+    {
+        y[i] = 0.0;
+        for (int j = 0; j < df->rows; j++)
+            y[i] += Xt[i * df->rows + j] * GET(df, j, lr.y_col);    
+    }
+
+    __linear_solver__(XtX, lr.beta, y, n);
+
+    free(XtX);
+    free(y);
+
+    if (lr.print == true)
+    {
+        __print_line__(1, "┌", "─", "┐");
+        printf("| %*.*s |\n", 2*CELL_SIZE - 3, 2*CELL_SIZE - 3, "Coefficients");
+        __print_line__(1, "├", "┬", "┤");
+        printf("| intercept | %+.2e |\n", lr.beta[0]);
+
+        for (int i = 1; i <= lr.x_cols_num; i++)
+        {
+            __print_line__(1, "├", "┼", "┤");
+            printf("| %9.9s | %+.2e |\n", df->label[lr.x_cols[i-1]].nameCol, lr.beta[i]);
+        }
+        __print_line__(1, "└", "┴", "┘");
+    }
+    
 }

@@ -3,30 +3,20 @@
 
 int main()
 {
+    DataFrame *df = read_csv("Admission_Predict.csv");
+    printDataFrame(df, 10);
 
-    double A[9] = {4, 12, -16, 12, 37, -43, -16, -43, 98};
-    double b[3] = {-4, 5, 128};
-    double x[3];
+    double beta[8];
 
-    __linear_solver__(A, x, b, 3);
+    LinearRegression model = {
+        .y_col = 8,
+        .beta = beta,
+        .x_cols = (int []){1,2,3,4,5,6,7},
+        .x_cols_num = 7,
+        .print = true
+    };
 
-    for (int i = 0; i < 3; i++)
-    {
-        printf("%f\n", x[i]);
-    }
-
-    /*DataFrame *df = read_csv("Admission_Predict.csv");
-
-
-    double X[4 * df->rows];
-    double Xt[4 * df->rows];
-    double XtX[4 * 4];
-
-    __design_matrix__(X, df, (int []){1, 2, 3}, 4);
-    __transpose__(Xt, X, 4, df->rows);
-    __matmul__(Xt, X, XtX, 4, df->rows, 4);
-
-    freeDataFrame(df);*/
+    linearRegression(df, model);
 
     return 0;
 }
