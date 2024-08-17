@@ -13,7 +13,7 @@ int main()
         .beta = beta,
         .x_cols = (int []){1,2,3,4,5,6,7},
         .x_cols_num = 7,
-        .print = true
+        .print = false
     };
 
     linearRegression(df, model);

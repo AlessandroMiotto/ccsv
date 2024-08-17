@@ -146,32 +146,15 @@ DataFrame* read_csv(char *file_path)
 void printDataFrame(DataFrame *df, int line_to_print)
 {
     // Print upper border
-    printf("┌");
-    for (int i = 1; i < CELL_SIZE * df->cols; i++)
-    {
-        if (i % CELL_SIZE == 0)
-            printf("┬");
-        else
-            printf("─");
-    }
-    printf("┐\n");
+    __print_line__(df->cols - 1, "┌", "┬", "┐");
 
     // Print header
     printf("│ ");
     for (int i = 0; i < df->cols; i++)
         printf("%*.*s │ ", CELL_SIZE - 3, CELL_SIZE - 3, df->label[i].nameCol);
 
-    printf("\n├");
-
     // Print header-data border
-    for (int i = 1; i < CELL_SIZE * df->cols; i++)
-    {
-        if (i % CELL_SIZE == 0)
-            printf("┼");
-        else
-            printf("─");
-    }
-    printf("┤\n");
+    __print_line__(df->cols - 1, "\n├", "┼", "┤");
 
     // Print data
     for (int i = 0; i < df->rows; i++)
@@ -189,15 +172,7 @@ void printDataFrame(DataFrame *df, int line_to_print)
     }
 
     // Print lower border
-    printf("└");
-    for (int i = 1; i < CELL_SIZE * df->cols; i++)
-    {
-        if (i % CELL_SIZE == 0)
-            printf("┴");
-        else
-            printf("─");
-    }
-    printf("┘\n");
+    __print_line__(df->cols - 1, "└", "┴", "┘\n");
 }
 
 // Return the name of the column
