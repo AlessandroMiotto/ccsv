@@ -11,13 +11,14 @@
 // (the first column has only ones to compute the intercept)
 void __design_matrix__(double *X, DataFrame *df, int *cols, int n)
 {
-    #pragma omp parallel for num_threads(NUM_THREADS)
-    for (int i = 0; i < df->rows; i++)
-    {
-        X[i * n] = 1.0;
+    #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
+    for (int i = 0; i < df->rows; i++)  
         for (int j = 1; j < n; j++)
             X[i * n + j] = GET(df, i, cols[j - 1]);
-    }
+
+    #pragma omp parallel for num_threads(NUM_THREADS)
+    for (int i = 0; i < df->rows; i++)
+        X[i * n] = 1.0;
 }
 
 // transpose of matrix X
@@ -25,22 +26,18 @@ void __transpose__(double *Xt, double *X, int m, int n)
 {
     #pragma omp parallel for num_threads(NUM_THREADS) collapse(2)
     for (int i = 0; i < m; i++)
-    {
         for (int j = 0; j < n; j++)
             Xt[i * n + j] = X[j * m + i];
-    }
 }
 
 // matrix-matrix multiplication
 void __matmul__(double *A, double *B, double *C, int m, int n, int p)
 {
-#pragma omp parallel for num_threads(NUM_THREADS)
+    #pragma omp parallel for num_threads(NUM_THREADS) collapse(3)
     for (int i = 0; i < m; i++)
-    {
         for (int j = 0; j < p; j++)
             for (int k = 0; k < n; k++)
                 C[i * p + j] += A[i * n + k] * B[k * p + j];
-    }
 }
 
 // Linear system solution Lx=b with L lower matrix
@@ -74,7 +71,6 @@ void __back_substitution__(double *U, double *x, double *b, int n)
 void __cholesky__decomposition__(double *A, double *L, int n)
 {
     for (int i = 0; i < n; i++)
-    {
         for (int j = 0; j <= i; j++)
         {
             float sum = 0;
@@ -86,7 +82,6 @@ void __cholesky__decomposition__(double *A, double *L, int n)
             else
                 L[i * n + j] = (1.0 / L[j * n + j] * (A[i * n + j] - sum));
         }
-    }
 }
 
 // Linear solver Ax=b for A symmetric n x n matrix
@@ -157,5 +152,4 @@ void linearRegression(DataFrame *df, LinearRegression lr)
         }
         __print_line__(1, "└", "┴", "┘");
     }
-    
 }
