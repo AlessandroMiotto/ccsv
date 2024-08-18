@@ -4,7 +4,11 @@
 int main()
 {
     DataFrame *df = read_csv("Admission_Predict.csv");
-    printDataFrame(df, ALL_LINES);
+    printDataFrame(df, 10);
+
+    //printSummary(df, (int []){0}, 1);
+
+    //corr(df, (int []){0}, 1);
 
     double beta[8];
 
