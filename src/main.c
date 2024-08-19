@@ -4,7 +4,7 @@
 int main()
 {
     DataFrame *df = read_csv("Admission_Predict.csv");
-    printDataFrame(df, 10);
+    //printDataFrame(df, 10);
 
     //printSummary(df, (int []){0}, 1);
 
